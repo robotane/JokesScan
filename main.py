@@ -20,7 +20,13 @@ with open("jokes.txt") as jokes_f:
     category = ""
     old_category = ""
     jokes = []
-    for line in jokes_f:
+    can_save = False
+    lines = jokes_f.readlines()
+    N = len(lines)-1
+    print(N)
+    last_category = "Contrepétries"
+    for index, line in enumerate(lines):
+        # print(index)
         if not line.strip():
             continue
 
@@ -30,18 +36,29 @@ with open("jokes.txt") as jokes_f:
                 continue
             new_category = section_tmp.replace("…", " ").strip()
             new_category = " / ".join([c.strip() for c in new_category.split("/")])
+            if new_category == last_category:
+                can_save = True
             if not joke:
                 category = new_category
         elif joke_title_re.match(line):
-            if joke:
-                title = title.replace("…", "").replace(":", "").replace("..", "").replace(".", "").replace("...", "")
-                category = category[0].upper() + category[1:]
-                jokes.append((title.strip(), category, joke.strip()))
-                category = new_category
-            joke = ""
-            title = joke_title_re.sub("", line).strip()
+            if not joke_title_re.sub("", line).strip():
+                continue
+            can_save = bool(joke)
         else:
             joke += line
+
+        if index == N:
+            title = category
+            can_save = True
+
+        if can_save:
+            title = title.replace("…", "").replace(":", "").replace("..", "").replace(".", "")
+            category = category[0].upper() + category[1:]
+            jokes.append((title.strip(), category, joke.strip()))
+            category = new_category
+            can_save = False
+            joke = ""
+            title = joke_title_re.sub("", line).strip()
 
 with sqlite3.connect(db_file_path) as con:
     cur = con.cursor()
