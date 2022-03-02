@@ -2,6 +2,7 @@ import pathlib
 import re
 import sqlite3
 
+
 section_title_re = re.compile("([0-9]+).\[T]")
 joke_title_re = re.compile("([0-9]+).\[I]")
 
@@ -43,6 +44,7 @@ with open("jokes.txt") as jokes_f:
         elif joke_title_re.match(line):
             if not joke_title_re.sub("", line).strip():
                 continue
+            title = joke_title_re.sub("", line).strip()
             can_save = bool(joke)
         else:
             joke += line
@@ -52,13 +54,16 @@ with open("jokes.txt") as jokes_f:
             can_save = True
 
         if can_save:
+            # TODO It looks like the jokes names don't one step after the actual joke content.
+            # fix it!
+            
             title = title.replace("…", "").replace(":", "").replace("..", "").replace(".", "")
             category = category[0].upper() + category[1:]
             jokes.append((title.strip(), category, joke.strip()))
             category = new_category
             can_save = False
             joke = ""
-            title = joke_title_re.sub("", line).strip()
+            
 
 with sqlite3.connect(db_file_path) as con:
     cur = con.cursor()
